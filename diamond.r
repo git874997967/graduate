@@ -34,7 +34,8 @@ diamondsBig=read.csv("diamonds.csv",strip.white=TRUE)
 diamond=na.omit(diamondsBig)[c(-1,-9)]
 filter(diamond,diamond$table!='0')
 filter(diamond,diamond$depth!='0')
-diamond=unique(diamond)
+# new function   renew the index
+distinct(diamond)
 # diamond=trim(diamond)
 # ??trim
 # get the relationship between cart and price 
