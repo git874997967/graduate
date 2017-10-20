@@ -6,6 +6,7 @@ library(doParallel)
 library(lattice)  
 library(class)
 library(kknn)
+library(arules)
 library( nnet)
 library(neuralnet)
 library(RSNNS)
@@ -119,4 +120,24 @@ diamonds$xyz=log(diamonds$x*diamonds$y*diamonds$z)
 diamonds=diamonds[diamonds$xyz<6.5,]
 
 # facents can describe three class variables
-qplot(color,data=diamonds,facets=clarity~.,geom='bar',fill=cut,main='this title',xlab='this is lab for x axis',ylab='this is lab for y axis')
+qplot(color,data=diamonds,facets=.~clarity,geom='bar',fill=cut,main='this title',xlab='this is lab for x axis',ylab='this is lab for y axis')
+##the mapping from data to decoration
+p=qplot(displ,hwy,data=mpg,color=factor(cyl),main="abc",xlab='engine size',ylab='hwy mpg',facets=.~year,geom=c('smooth','point'))
+summary(p)  
+### 首先创造 ggplot 对象  接着在对象画板上进行渲染
+q=ggplot(diamonds,aes(x=carat))+
+  geom_histogram(binwidth = 2,fill='steelblue')+
+  stat_bin()
+ q
+summary(q)
+qplot(sleep_rem/ sleep_total,awake,data=msleep)+geom_point()+geom_smooth()
+msleep
+trans_mtcars=transform(mtcars,mpg=mpg^2)
+p1=ggplot(mtcars,aes(mpg,wt,color=cyl),engine='jitter',facet_grid=.~mtcars$gear)+geom_smooth()
+p1%+%trans_mtcars
+p1
+ ggplot(diamonds,aes(carat,price) )+geom_smooth()+geom_point(aes(carat,price), colour="red")+geom_jitter(width = 0.1, height = 0.1)
+ ggplot(diamonds,aes(clarity,fill=color))+geom_bar(position='dodge')+facet_grid(facets=.~cut)
+ ggplot(diamonds,aes(carat))+stat_bin(aes(ymax=..count..),binwidth = 0.1,geom='area')
+ 
+ 
