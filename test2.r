@@ -19,7 +19,7 @@ diamond=na.omit(diamondsBig[c(-1,-9)])
           lower = list(continuous = wrap("points", shape = I('.'))), 
           upper = list(combo = wrap("box", outlier.shape = I('.'))))
   
-pairs(diamonds)
+pairs(diamond)
 ## parallel is not useful with the ggpairs
 system.time({
   #cl=makeCluster(detectCores())
