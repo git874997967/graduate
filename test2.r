@@ -43,7 +43,7 @@ train=diamond[sampleData==1,]
 lm1=lm(I(log10(price))~ I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z,data=train)
 lm2 <- lm(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+I((x*y*z)^(1/3)), data = train)
 ### I((x*y*z)^(1/3)) is uncessary  lm3 is the final lm model with R square 0.98
-lm3 <- lm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train)
+lm3 <- lm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = diamond)
 summary(lm3)
 summary(step(lm3))  
 glm1=glm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train,family=gaussian(link = "identity"))
