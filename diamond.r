@@ -35,62 +35,80 @@ diamond=na.omit(diamondsBig)[c(-1,-9)]
 filter(diamond,diamond$table!='0')
 filter(diamond,diamond$depth!='0')
 # new function   renew the index
-distinct(diamond)
+#distinct(diamond)
 # diamond=trim(diamond)
 # ??trim
 # get the relationship between cart and price 
 ggpairs(diamond, wrap = c(shape = I('.'), outlier.shape = I('.')))
-ggplot(diamond,aes(x=carat,y=x))+
+ggplot(diamond,aes(x=carat,y=price))+
   geom_point(color='blue',fill='orange',alpha=1/2,size=1,position = 'jitter') + 
   # xlim(0, diamonds$carat)+
   # ylim(0, diamonds$price)+
   ggtitle('Diamond price vs. carat')
-ggplot(diamond,aes(x=carat,y=log2(price)))+
-  geom_point(color='blue',fill='orange',alpha=1/2,size=1,position = 'jitter') + 
-  xlim(0, quantile(diamonds$carat,0.99))+
-   ylim(0, quantile(diamonds$price,0.99))+
+
+ggplot(diamond,aes(x=carat,y=price))+
+  geom_point(color='blue',fill='orange',alpha=1/2,size=1,position = 'jitter')+
+  #xlim(0,quantile(diamonds$carat,0.99))+
+  #ylim(0,quantile(diamonds$price,0.99))+
   ggtitle('Diamond price vs. carat')
+
+
 # change the price as log10(price make it more smooth)
  
- 
-plot1 <- ggplot(diamond,aes(x=price))+
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+  ggplot(diamond,aes(x=price))+
   geom_histogram(color='blue',fill = 'orange',binwidth=100)+
   scale_x_continuous(breaks=seq(300,19000,1000),limit=c(300,19000))+
   ggtitle('Price')
-plot2 <- ggplot(diamonds,aes(x=price))+
+  ggplot(diamonds,aes(x=price))+
   geom_histogram(color='blue',fill='orange',alpha=0.4,binwidth=0.01)+
   
   scale_x_log10(breaks=seq(300,19000,1000),limit=c(300,19000))+
   ggtitle('Price(log10)')
-grid.arrange(plot1,plot2,ncol=2)
+#grid.arrange(plot1,plot2,ncol=2)
 
 ### Create a new function to transform the carat variable
- caratBreak=c(0.2, 0.5, 1, 1.5,2,2.5,3,4,4,5,6,7,8,9,10)
+ caratBreak=c(0.2, 0.5, 1, 1.5,2,2.5,3,4,5,6,7,8,9,10)
  priceBreak=c(350, 1000, 5000, 10000, 15000,20000,40000,60000,80000,100000,120000)
-cuberoot_trans = function() trans_new('cuberoot',transform = function(x) x^(1/3)
-                                      ,inverse = function(x) x^3)
+ cuberoot_trans = function() trans_new( 'cuberoot',
+                                       transform = function(x) x^(1/3),
+                                       inverse = function(x) x^3)
+ log10_trans = function() trans_new( 'cuberoot',
+                                        transform = function(x) log10(x),
+                                        inverse = function(x) 10^x)
  
 ### Use the cuberoot_trans function
-ggplot(aes(carat, price), data = diamond) + 
+ggplot(aes(carat^(1/3), log10(price)), data = diamond) + 
   geom_point(color='blue',fill='orange',alpha=1/2,size=1,position = 'jitter') + 
-  scale_x_continuous(trans = cuberoot_trans(),  
-                     breaks = caratBreak) + 
-  scale_y_continuous(trans = log10_trans(),  
-                     breaks = priceBreak) +
-  ggtitle('Price (log10) by Sqrt-Root of Carat')
+  scale_x_continuous( 
+                    breaks = caratBreak) + 
+  scale_y_continuous( 
+                     breaks =  priceBreak) +
+  ggtitle('Price (log10) by Cube-Root of Carat')
+
 Dis=function(featureName){
-  ggplot(aes(x = carat, y = price), data = diamond) + 
+  ggplot(aes(carat^(1/3), log10(price)), data = diamond) + 
     geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=featureName)) +
-    scale_color_brewer(type = 'div',
-                       guide = guide_legend(title = featureName, reverse = T,
-                                            override.aes = list(alpha = 1, size = 2))) +                         
-    scale_x_continuous(trans = cuberoot_trans(), 
+      scale_color_brewer(type = 'div',
+                         guide = guide_legend(title = featureName, reverse = T,
+                                              override.aes = list(alpha = 0.8, size = 2))) +                         
+    scale_x_continuous(#trans = cuberoot_trans(), 
                        breaks = caratBreak) + 
-    scale_y_continuous(trans = log10_trans(), 
+    scale_y_continuous(#trans = log10_trans(), 
                        breaks =  priceBreak) +
     ggtitle('Price (log10) by Cube-Root of Carat and',featureName)
 }
 
+ggplot(aes(carat^(1/3), log10(price)), data = diamond) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=cert)) +
+  scale_color_brewer(type = 'div',
+                     guide = guide_legend(title = 'Cert', reverse = T,
+                                          override.aes = list(alpha = 0.8, size = 2))) +                         
+  scale_x_continuous(#trans = cuberoot_trans(), 
+    breaks = caratBreak) + 
+  scale_y_continuous(#trans = log10_trans(), 
+    breaks =  priceBreak) +
+  ggtitle('Price (log10) by Cube-Root of Carat and Cert')
 Dis('cut')
 Dis('color')
 Dis('clarity')
@@ -113,7 +131,9 @@ testPred1=predict(steplm1,test,level=0.95)
 # Call:
 #   lm(formula = I(log10(price)) ~ I(carat^(1/3)) + carat + cut + 
 #        clarity + color + cert + x + y + z, data = train)
-lm2 <- lm(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+I(x^2)+y+z , data = train)
+lm2 <- lm(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z+ I((x*y*z) ^(1/3)) , data = train) ## good
+ 
+ 
 summary(lm2)
 steplm2=step(lm2)
 #   after step lm2 the variable x was deleted 
