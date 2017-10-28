@@ -131,16 +131,14 @@ testPred1=predict(steplm1,test,level=0.95)
 # Call:
 #   lm(formula = I(log10(price)) ~ I(carat^(1/3)) + carat + cut + 
 #        clarity + color + cert + x + y + z, data = train)
-lm2 <- lm(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z+ I((x*y*z) ^(1/3)) , data = train) ## good
- 
- 
+lm2 <- lm(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x*y*z , data = train) ## good
 summary(lm2)
 steplm2=step(lm2)
 #   after step lm2 the variable x was deleted 
 summary(steplm2)
 mtable(lm2) 
  
-testPred2=predict.lm(steplm2,test)
+testPred2=predict.lm(lm2,test,level=0.95)
 
 # regression tree 
 
@@ -152,14 +150,17 @@ tm3=tree(price~.,data=train)
 testPred3=predict(tm3,test)
 
 # tree -2
-
-tm4=rpart(price~.,data=train)
-#draw.tree(tm4)
+tm3=rpart(price~.,data=train)
+rsq.rpart(tm3)
+draw.tree(tm3)
+tm3=prune(tm3,cp=0.01)
+tm4=rpart(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z,data=train)
+draw.tree(tm4)
 rsq.rpart(tm4)
 tm4<- prune(tm4,cp=0.01)
-draw.tree(tm4)
+#draw.tree(tm4)
 testPred4=predict(tm4,test)
-
+testPred3=predict(tm3,test)
 #   ranger forest
  m =ncol(train)
 # 
@@ -181,9 +182,8 @@ testPred4=predict(tm4,test)
  
 
 # with ranger
-fm5 <- ranger(price ~ ., data = train, write.forest = TRUE)
-testPred5 <- predict(fm5, data =test, interval = "prediction",level = .95)
-
+fm6 <- ranger(price ~ ., data = train, write.forest = TRUE,num.trees = 600)
+testPred6 <- predict(fm6, data =test, interval = "prediction",level = .95)
 #####svm  pretty slow
   cl=makeCluster(detectCores(logical = TRUE))
   registerDoParallel(cl)
@@ -192,7 +192,9 @@ testPred5 <- predict(fm5, data =test, interval = "prediction",level = .95)
 
 
 ####### with kknn
-    kknnModel=kknn(price~.,train,test,kernel='gaussian')
+    kknnModel=kknn(price~.,train,test, k = 15, 
+                   kernel =   "optimal" , distance = 9)
+
     with(test,{
       plot(price,type="l",main=" price VS predicted price",
            ylab="price",
@@ -204,13 +206,13 @@ testPred5 <- predict(fm5, data =test, interval = "prediction",level = .95)
 
 ##draw the plot
 withTest=function(modelName){
-    if(modelName=='testPred5'){
+    if(modelName=='testPred6'){
     mainTitle=' price VS predicted price( forest model with ranger)'
-    model=testPred5$predictions
+    model=testPred6$predictions
     }
   else if(modelName=='testPred4'){
     mainTitle=" price VS predicted price( regression tree2)"
-    model=testPred4
+    model=10^testPred4
   }
   else if(modelName=='testPred3'){
     mainTitle=" price VS predicted price( regression tree1)"
@@ -238,7 +240,7 @@ withTest=function(modelName){
   })
 }
 
-withTest('kknnModel$fitted.values')
+withTest('testPred6')
 ##### test part
 
 cal_rms_error <- function(model,train_data,test_data,yval){
