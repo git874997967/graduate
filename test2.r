@@ -5,6 +5,7 @@ library(randomForest)
 library(parallel)
 library(mlbench)
 library(kknn)
+library(MASS)
 ###the file is test for some new models and skills about the graduate project.
 setwd('../Desktop/graduate')
 diamondsBig=read.csv('diamonds.csv')
@@ -43,13 +44,22 @@ train=diamond[sampleData==1,]
 lm1=lm(I(log10(price))~ I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z,data=train)
 lm2 <- lm(I(log10(price)) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+I((x*y*z)^(1/3)), data = train)
 ### I((x*y*z)^(1/3)) is uncessary  lm3 is the final lm model with R square 0.98
-lm3 <- lm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = diamond)
-summary(lm3)
-summary(step(lm3))  
-glm1=glm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train,family=gaussian(link = "identity"))
-glm2=glm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train,family=quasipoisson(link = "log"))
-glm3=glm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train,family=quasi(link = "identity", variance = "constant"))
-        
+lm3 <- lm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train)
+lm4=rlm(log10(price) ~I(carat^(1/3))+carat+cut+clarity+color+cert+table+depth+x+y+z+x*y*z, data = train)
+summary(lm4)
+       lm4Pre=predict(lm4,test)
+       lm3Pre=predict(lm3,test)
+       
+       with(test,{
+         plot(price,type="l",main=" price in test dataset",
+              ylab="price",
+              xlab="diamond index"
+         )
+         # points(10^lm4Pre,type="l",col=3)
+         # legend("topleft",c("price","price.predict"),col=1:3,lty=1)
+       })
+       
+       
   #### regresssion tree)
 ####benefits
 # 决策树的够造不需要任何领域知识，就是简单的IF...THEN...思想 ；
