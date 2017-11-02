@@ -183,7 +183,7 @@ testPred3=predict(tm3,test)
 
 # with ranger
 fm6 <- ranger(price ~ ., data = train, write.forest = TRUE,num.trees = 600)
-testPred6 <- predict(fm6, data =test, interval = "prediction",level = .95)
+testPred5 <- predict(fm6, data =test, interval = "prediction",level = .95)
 #####svm  pretty slow
   cl=makeCluster(detectCores(logical = TRUE))
   registerDoParallel(cl)
@@ -192,8 +192,8 @@ testPred6 <- predict(fm6, data =test, interval = "prediction",level = .95)
 
 
 ####### with kknn
-    kknnModel=kknn(price~.,train,test, k = 15, 
-                   kernel =   "optimal" , distance = 9)
+    kknnModel=kknn(price~.,train,test, k = 7, 
+                   kernel =   "optimal" , distance = 2)
 
     with(test,{
       plot(price,type="l",main=" price VS predicted price",
@@ -297,20 +297,24 @@ maefun <- function(pred, obs) mean(abs(pred - obs))
 msefun <- function(pred, obs) mean((pred - obs)^2)  
 nmsefun <- function(pred, obs) mean((pred - obs)^2)/mean((mean(obs) - obs)^2)  
 # test
-maefun(testPred1,test$price)
+#maefun(testPred1,test$price)
 maefun(10^testPred2,test$price)
-maefun(testPred3,test$price)
-maefun(testPred4,test$price)
+#maefun(testPred3,test$price)
+#maefun(testPred4,test$price)
 maefun(testPred5$predictions,test$price)
-msefun(testPred1,test$price)
+#msefun(testPred1,test$price)
 msefun(10^testPred2,test$price)
-msefun(testPred3,test$price)
-msefun(testPred4,test$price)
+#msefun(testPred3,test$price)
+#msefun(testPred4,test$price)
 msefun(testPred5$predictions,test$price)
-nmsefun(testPred1,test$price)
+#nmsefun(testPred1,test$price)
 nmsefun(10^testPred2,test$price)
-nmsefun(testPred3,test$price)
-nmsefun(testPred4,test$price)
+#nmsefun(testPred3,test$price)
 nmsefun(testPred5$predictions,test$price)
-
-
+kknnModel=kknn(price~.,train,test, k = 7, 
+               kernel =   "optimal" , distance = 2)
+nmsefun(testPred5$predictions,test$price)
+maefun(kknnModel$fitted.values,test$price)
+msefun(kknnModel$fitted.values,test$price)
+nmsefun(kknnModel$fitted.values,test$price)
+ 
