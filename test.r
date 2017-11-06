@@ -11,9 +11,16 @@ library( nnet)
 library(neuralnet)
 library(RSNNS)
 library(sqldf)
-sample_data=sample(2,nrow(diamonds),replace=TRUE,prob=c(0.85,0.15))
-test=diamonds[sample_data==2,]
-train=diamonds[sample_data==1,]
+library(xgboost)
+library(Matrix)
+library(MicrosoftML)
+library(data.table)
+library(vcd)
+diamondBig=read.csv('diamonds.csv',stringsAsFactors = TRUE,strip.white =FALSE)
+diamonds=na.omit(diamondBig)[,c(-1,-9)]
+sampeData=sample(2,nrow(diamonds),replace=TRUE,prob = c(0.85,0.15))
+test=diamonds[sampeData==2,]
+train=diamonds[sampeData==1,]
 #### basic analysis
 diasamp = diamonds[sample(1:length(diamonds$price), 10000),]
 ggpairs(diamonds, wrap = c(shape = I('.'), outlier.shape = I('.')))
@@ -45,7 +52,7 @@ iris_train_lab<-iris[c(1:25,50:75,100:125),5]
 iris_test_lab<-iris[c(26:49,76:99,126:150),5]
 pre_result=knn(train,test,cl=iris_train_lab,k=13)
 table(pre_result,iris_test_lab)
-##################kknn   æç»§ç»�è°ä¼çä½å°  
+##################kknn   æç»§ç»?è°ä¼çä½å°  
 kknnModel=kknn(price~.,train,test,kernel='gaussian')
 plot(kknnModel$fitted.values)
 
@@ -70,7 +77,7 @@ with(test,{
 })
 
 ############# ç¥ç»ç½ç»  neuralnet 
-#####ç½ä¸è¯´  è¾å¥ä¸å®è¦å¨é¨é½æ¯ æ°å�ç±»å   æå¾èè¯
+#####ç½ä¸è¯´  è¾å¥ä¸å®è¦å¨é¨é½æ¯ æ°å?ç±»å   æå¾èè¯
 neural_model=neuralnet(price~carat+cut+clarity+color+table+depth+x+y+z,data=train,hidden=9)
 neural_predict=predict(neural_model,test)
 
@@ -139,5 +146,48 @@ p1
  ggplot(diamonds,aes(carat,price) )+geom_smooth()+geom_point(aes(carat,price), colour="red")+geom_jitter(width = 0.1, height = 0.1)
  ggplot(diamonds,aes(clarity,fill=color))+geom_bar(position='dodge')+facet_grid(facets=.~cut)
  ggplot(diamonds,aes(carat))+stat_bin(aes(ymax=..count..),binwidth = 0.1,geom='area')
+ #########################################################################
+ # rxFastLinear Regression  ????
+ 
+ # Create an xdf file with the attitude data
+ myXdf <- tempfile(pattern = "tempAttitude", fileext = ".xdf")
+ rxDataStep(attitude, myXdf, rowsPerRead = 50, overwrite = TRUE)
+ myXdfDS <- RxXdfData(file = myXdf)
+ 
+ attitudeForm <- rating ~ complaints + privileges + learning + 
+   raises + critical + advance
+ 
+ # Estimate a regression model with rxFastLinear 
+ res2 <- rxFastLinear(formula = attitudeForm,  data = myXdfDS, 
+                      type = "regression")
+ 
+ # Score to data frame
+ scoreOut2 <- rxPredict(res2, data = myXdfDS, 
+                        extraVarsToWrite = "rating")
+ 
+ # Plot the rating versus the score with a regression line
+ rxLinePlot(rating~Score, type = c("p","r"), data = scoreOut2)
+ 
+ # Clean up   
+ file.remove(myXdf)
+ 
+ #############xgboost
+df=data.table(diamonds,keep.rownames = FALSE)
+sparse_matrix <- sparse.model.matrix(price~.-1, data = df)
+head(sparse_matrix)
+output_vector = df[,price]
+ bst=xgboost(data=sparse_matrix,label=output_vector,nthread=8,nround=30,eta=0.3,objective="reg:linear")
+ importance <- xgb.importance(feature_names = sparse_matrix@Dimnames[[2]], model = bst)
+ 
+ head(importance)
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
  
