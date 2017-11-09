@@ -2,6 +2,10 @@ library(regclass)
 library(caret)
 library(glmnet)
 library(pROC)
+library(dplyr)
+library(Matrix)
+library(magrittr)
+library(xgboost)
 data(LAUNCH)
 View(LAUNCH)
 launch=LAUNCH
@@ -29,4 +33,30 @@ head(launch)
 # refine launch as scaled version of itself using scale 
 # the class of launch will now be a matrix instead of a data frame
 launch=scale(launch)
-
+##############
+data=read.csv(file.choose(),header=T)
+data$rank=as.factor(data$rank)
+inc=sample(2,nrow(data),replace=T,prob=c(0.8,0.2))
+train=data[inc==1,]
+test=data[inc==2,]
+####create the matrix and label
+View(train)
+trainm=sparse.model.matrix(admit~.-1,data=train)
+testm=sparse.model.matrix(admit~.-1,data=test)
+trainl=train[,'admit']
+testl=test[,'admit']
+train_matrix=xgb.DMatrix(data=as.matrix(trainm),label=trainl)
+test_matrix=xgb.DMatrix(data=as.matrix(testm),label=testl)
+train_matrix
+###parameters
+nc=length(unique(trainl))
+xgb_params=list('objective'='multi:softprob',
+                'eval_metric'='mlogloss',
+                  'num_class'=nc)
+watch_list=list(train=train_matrix,test=test_matrix)
+#### boosting model
+bst_model=xgb.train(params=xgb_params,data=train_matrix,nrounds=10,watchlist=watch_list,nthread=8)
+###train and test error plot 
+e=data.frame(bst_model$evaluation_log)
+plot(e$vectors,e$train_mlogloss)
+ 
