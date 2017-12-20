@@ -21,6 +21,13 @@ ui <- dashboardPage(
            title = "Controls",
            sliderInput("slider", "Number of observations:", 1, 100, 50)
          )
+       ),
+       fluidRow(
+         box(plotOutput("plot2", height = 250)),
+         box(
+           title = "Controls",
+           sliderInput("select", "Number of observations:", 1, 100, 50)
+         )
        )
       ),
       tabItem(
