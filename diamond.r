@@ -100,15 +100,15 @@ Dis=function(featureName){
 }
 
 ggplot(aes(carat^(1/3), log10(price)), data = diamond) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=cert)) +
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=cut)) +
   scale_color_brewer(type = 'div',
-                     guide = guide_legend(title = 'Cert', reverse = T,
-                                          override.aes = list(alpha = 0.8, size = 2))) +                         
+                     guide = guide_legend(title = 'Cut', reverse = T,
+                                          override.aes = list(alpha = 0.8, size = 8))) +                         
   scale_x_continuous(#trans = cuberoot_trans(), 
     breaks = caratBreak) + 
   scale_y_continuous(#trans = log10_trans(), 
     breaks =  priceBreak) +
-  ggtitle('Price (log10) by Cube-Root of Carat and Cert')
+  ggtitle('Price (log10) by Cube-Root of Carat and Cut')
 Dis('cut')
 Dis('color')
 Dis('clarity')
